@@ -5,7 +5,7 @@ import { usePathname } from 'next/navigation'
 import { 
   Bell, 
   Settings, 
-  User, 
+  UserIcon, 
   LogOut,
   Search,
   Menu,
