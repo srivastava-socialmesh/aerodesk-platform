@@ -182,11 +182,11 @@ export default function RegisterPage() {
                   <SelectValue placeholder="Select your role" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Operator">Aircraft Operator</SelectItem>
-                  <SelectItem value="Corporate Admin">Corporate Travel Desk</SelectItem>
-                  <SelectItem value="Travel Agency">Travel Agency</SelectItem>
-                  <SelectItem value="Hotel Partner">Hotel Partner</SelectItem>
-                  <SelectItem value="Individual Customer">Individual Customer</SelectItem>
+                  <SelectItem value="operator">Aircraft Operator</SelectItem>
+                  <SelectItem value="corporate">Corporate Travel Desk</SelectItem>
+                  <SelectItem value="travel-agency">Travel Agency</SelectItem>
+                  <SelectItem value="hotel">Hotel Partner</SelectItem>
+                  <SelectItem value="customer">Individual Customer</SelectItem>
                 </SelectContent>
               </Select>
               {errors.role && (
