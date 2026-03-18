@@ -5,17 +5,16 @@ AERODESK PLATFORM CORE
 export type PlatformRole =
   | "admin"
   | "operator"
-  | "travel-agency"
+  | "agency"
   | "corporate"
   | "hotel"
-  | "customer"
+  | "individual"
 
 export type UserStatus =
   | "active"
-  | "approved"
-  | "pending"
+  | "inactive"
   | "suspended"
-  | "rejected"
+  | "blocked"
 
 export type FirmRole =
   | "admin"
@@ -50,9 +49,7 @@ export type User = {
   agencyId?: string
   corporateId?: string
   hotelPartnerId?: string
-  /* corporate workflow role */
   firmRole?: FirmRole
-  companyName?: string
   legalEntityName?: string
   gstin?: string
   gstNumber?: string
@@ -69,21 +66,20 @@ USER ROLES
 ========================================================= */
 
 export type UserRole =
-| "admin"
-| "operator"
-| "travel-agency"
-| "hotel"
-| "corporate"
-| "Requester"
-| "CTD Admin"
-| "customer"
-
-export type FirmRole =
-  | "EMPLOYEE"
-  | "MANAGER"
-  | "COST_CENTER_OWNER"
-  | "FINANCE"
-  | "TRAVEL_DESK"
+  | "admin"
+  | "operator"
+  | "travel-agency"
+  | "hotel"
+  | "corporate"
+  | "customer"
+  | "Admin"
+  | "Operator"
+  | "Travel Agency"
+  | "Hotel Partner"
+  | "Corporate Admin"
+  | "Requester"
+  | "CTD Admin"
+  | "Customer"
 
 /* =========================================================
 OPERATORS
@@ -97,20 +93,6 @@ export type OperatorStatus =
   | "Approved"
   | "Pending Approval"
   | "Rejected"
-
-export interface User {
-  id: string
-  email: string
-  firstName?: string
-  lastName?: string
-  role: UserRole
-  status: UserStatus
-  companyName?: string
-  corporateId?: string
-  ctdId?: string
-  firmRole?: FirmRole
-  createdAt?: string
-}
 
 export type Operator = {
   id: string
@@ -182,17 +164,6 @@ export type CorporateTravelDesk = {
 /* =========================================================
 CORPORATE TRAVEL TYPE
 ========================================================= */
-
-export type CorporateOrganization = {
-  id: string
-  companyName: string
-  industry?: string
-  annualAviationBudget?: number
-  usedBudget?: number
-  contactEmail?: string
-  status: "ACTIVE" | "PENDING_SETUP" | "SUSPENDED" | "BLOCKED"
-  createdAt: string
-}
 
 export type CostCenter = {
   id: string
@@ -327,29 +298,19 @@ export type EmptyLeg = {
   id: string
   operatorId: string
   aircraftId: string
-  departure: string
-  arrival: string
-  departureTime: string
-  totalCapacity: number
-  availableSeats: number
-  basePricePerSeat: number
-  pricingModel: "Fixed" | "Dynamic"
-  status: string
-  createdAt: string
-}
-
-export interface EmptyLeg {
-  id: string
-  operatorId?: string
-  operatorName?: string
-  aircraftType?: string
   origin: string
   destination: string
-  departureTime?: string
-  arrivalTime?: string
-  seatsAvailable?: number
-  pricePerSeat?: number
-  createdAt?: string
+  departureTime: string
+  arrivalTime: string
+  totalSeats: number
+  availableSeats: number
+  pricePerSeat: number
+  currency: "INR" | "USD"
+  status: "draft" | "published" | "approved" | "expired" | "cancelled"
+  createdAt: string
+  publishedAt?: string
+  operatorName?: string
+  aircraftType?: string
 }
 
 /* =========================================================
@@ -384,28 +345,29 @@ CHARTER RFQ
 ========================================================= */
 
 export type CharterRFQStatus =
-| "Draft"
-| "New"
-| "Submitted"
-| "rfqSubmitted"
-| "Bidding Open"
-| "quoteAccepted"
-| "awaitingManifest"
-| "manifestSubmitted"
-| "manifestApproved"
-| "invoiceIssued"
-| "paymentSubmitted"
-| "paymentConfirmed"
-| "charterConfirmed"
-| "boarding"
-| "departed"
-| "arrived"
-| "flightCompleted"
-| "tripClosed"
-| "cancelled"
+  | "Draft"
+  | "New"
+  | "Submitted"
+  | "rfqSubmitted"
+  | "Bidding Open"
+  | "quoteAccepted"
+  | "awaitingManifest"
+  | "manifestSubmitted"
+  | "manifestApproved"
+  | "invoiceIssued"
+  | "paymentSubmitted"
+  | "paymentConfirmed"
+  | "charterConfirmed"
+  | "boarding"
+  | "departed"
+  | "arrived"
+  | "flightCompleted"
+  | "tripClosed"
+  | "cancelled"
 
 export type CharterRFQ = {
   id: string
+  requestId: string
   customerId: string
   requesterExternalAuthId: string
   operatorId?: string
@@ -413,13 +375,13 @@ export type CharterRFQ = {
   corporateId?: string
   customerName: string
   company?: string
-  departure: string
-  arrival: string
+  origin: string
+  destination: string
   departureDate: string
   departureTime: string
   pax: number
   aircraftType: string
-  status: string
+  status: CharterRFQStatus
   costCenter?: string
   businessPurpose?: string
   hotelRequired?: boolean
@@ -430,6 +392,31 @@ export type CharterRFQ = {
   updatedAt: string
   totalAmount?: number
   bidsCount?: number
+  selectedQuoteId?: string
+  expiryDate: string
+}
+
+/* =========================================================
+CHARTER QUOTES
+========================================================= */
+
+export type CharterQuote = {
+  id: string
+  rfqId: string
+  operatorId: string
+  aircraftId: string
+  totalAmount: number
+  currency: "INR" | "USD"
+  validUntil: string
+  terms?: string
+  isSelected: boolean
+  breakdown?: {
+    basePrice: number
+    fuelCharge: number
+    handlingFee: number
+    pilotFee: number
+  }
+  createdAt: string
 }
 
 /* =========================================================
@@ -437,15 +424,15 @@ SEAT MARKETPLACE
 ========================================================= */
 
 export type SeatRequestStatus =
-| "REQUEST_SUBMITTED"
-| "PENDING_OPERATOR_APPROVAL"
-| "APPROVED"
-| "WAITING_PAYMENT"
-| "PAYMENT_SUBMITTED"
-| "PAYMENT_CONFIRMED"
-| "CONFIRMED"
-| "COMPLETED"
-| "REJECTED"
+  | "REQUEST_SUBMITTED"
+  | "PENDING_OPERATOR_APPROVAL"
+  | "APPROVED"
+  | "WAITING_PAYMENT"
+  | "PAYMENT_SUBMITTED"
+  | "PAYMENT_CONFIRMED"
+  | "CONFIRMED"
+  | "COMPLETED"
+  | "REJECTED"
 
 export type SeatAllocationRequest = {
   id: string
@@ -460,6 +447,25 @@ export type SeatAllocationRequest = {
   passengers: Passenger[]
   requestStatus: SeatRequestStatus
   totalAmount?: number
+  createdAt: string
+}
+
+/* =========================================================
+SEAT BOOKINGS
+========================================================= */
+
+export type SeatBooking = {
+  id: string
+  bookingReference: string
+  emptyLegId: string
+  userId: string
+  bookerType: UserRole
+  seatsBooked: number
+  totalAmount: number
+  passengers: Passenger[]
+  status: "pending" | "confirmed" | "cancelled" | "completed"
+  paymentStatus: "pending" | "paid" | "refunded"
+  invoiceId?: string
   createdAt: string
 }
 
@@ -522,27 +528,40 @@ INVOICING & PAYMENTS
 
 export type Invoice = {
   id: string
+  invoiceNumber: string
   relatedEntityId: string
   charterId: string
   operatorId: string
-  invoiceNumber: string
   totalAmount: number
   currency?: "INR" | "USD"
   status: "draft" | "issued" | "paid" | "cancelled"
   bankDetails?: string
+  items?: InvoiceItem[]
   createdAt: string
+}
+
+export type InvoiceItem = {
+  description: string
+  quantity: number
+  unitPrice: number
+  amount: number
+  taxRate?: number
+  taxAmount?: number
 }
 
 export type Payment = {
   id: string
+  paymentReference: string
   charterId: string
   invoiceId: string
   relatedEntityId?: string
   utrReference: string
   amount?: number
-  status: "pending" | "submitted" | "verified" | "rejected"
+  method?: "bank_transfer" | "card" | "upi" | "wallet"
+  status: "pending" | "submitted" | "verified" | "rejected" | "completed" | "failed"
   createdAt: string
   verifiedAt?: string | null
+  completedAt?: string
 }
 
 /* =========================================================
@@ -793,14 +812,14 @@ export type DemoAccessLog = {
 CREW MANAGEMENT
 ========================================================= */
 
-export type CrewRole = 
+export type CrewRole =
   | "PILOT"
   | "CO_PILOT"
   | "FLIGHT_ATTENDANT"
   | "ENGINEER"
   | "GROUND_STAFF"
 
-export type CrewStatus = 
+export type CrewStatus =
   | "AVAILABLE"
   | "ON_DUTY"
   | "OFF_DUTY"
@@ -842,13 +861,13 @@ export type CrewAssignment = {
 MAINTENANCE
 ========================================================= */
 
-export type MaintenanceType = 
+export type MaintenanceType =
   | "SCHEDULED"
   | "UNSCHEDULED"
   | "AOG"
   | "INSPECTION"
 
-export type MaintenanceStatus = 
+export type MaintenanceStatus =
   | "PENDING"
   | "IN_PROGRESS"
   | "COMPLETED"
@@ -877,7 +896,7 @@ export type MaintenanceRecord = {
 HOTEL INVENTORY
 ========================================================= */
 
-export type RoomType = 
+export type RoomType =
   | "STANDARD"
   | "DELUXE"
   | "SUITE"
@@ -943,7 +962,7 @@ export type HotelBooking = {
 NOTIFICATIONS
 ========================================================= */
 
-export type NotificationType = 
+export type NotificationType =
   | "RFQ_CREATED"
   | "RFQ_EXPIRING"
   | "QUOTE_RECEIVED"
@@ -953,7 +972,7 @@ export type NotificationType =
   | "APPROVAL_PENDING"
   | "SYSTEM_ALERT"
 
-export type NotificationPriority = 
+export type NotificationPriority =
   | "LOW"
   | "MEDIUM"
   | "HIGH"
@@ -977,13 +996,13 @@ export type Notification = {
 SUBSCRIPTION & BILLING
 ========================================================= */
 
-export type SubscriptionTier = 
+export type SubscriptionTier =
   | "FREE"
   | "STARTER"
   | "PROFESSIONAL"
   | "ENTERPRISE"
 
-export type SubscriptionStatus = 
+export type SubscriptionStatus =
   | "ACTIVE"
   | "TRIAL"
   | "EXPIRED"
@@ -1006,156 +1025,3 @@ export type Subscription = {
   createdAt: string
   updatedAt?: string
 }
-
-export type InvoiceItem = {
-  id: string
-  description: string
-  quantity: number
-  unitPrice: number
-  amount: number
-  taxRate: number
-  taxAmount: number
-}
-
-export type Invoice = {
-  id: string
-  invoiceNumber: string
-  subscriptionId: string
-  entityId: string
-  entityType: string
-  items: InvoiceItem[]
-  subtotal: number
-  taxTotal: number
-  total: number
-  currency: "INR" | "USD"
-  status: "DRAFT" | "SENT" | "PAID" | "OVERDUE" | "CANCELLED"
-  dueDate: string
-  paidAt?: string
-  paymentMethod?: string
-  transactionId?: string
-  notes?: string
-  createdAt: string
-  updatedAt?: string
-}
-
-/* =========================================================
-ANALYTICS & REPORTING
-========================================================= */
-
-export type DateRange = {
-  startDate: string
-  endDate: string
-}
-
-export type ReportType = 
-  | "BOOKINGS"
-  | "REVENUE"
-  | "UTILIZATION"
-  | "COMPLIANCE"
-  | "USER_ACTIVITY"
-
-export type ReportFormat = 
-  | "PDF"
-  | "CSV"
-  | "EXCEL"
-  | "JSON"
-
-export type ScheduledReport = {
-  id: string
-  userId: string
-  name: string
-  type: ReportType
-  format: ReportFormat
-  frequency: "DAILY" | "WEEKLY" | "MONTHLY" | "QUARTERLY"
-  recipients: string[]
-  parameters: Record<string, any>
-  lastRun?: string
-  nextRun: string
-  active: boolean
-  createdAt: string
-  updatedAt?: string
-}
-
-/* =========================================================
-API INTEGRATIONS
-========================================================= */
-
-export type APIIntegration = {
-  id: string
-  entityId: string
-  entityType: string
-  serviceName: string
-  apiKey?: string
-  apiSecret?: string
-  webhookUrl?: string
-  settings: Record<string, any>
-  status: "ACTIVE" | "INACTIVE" | "ERROR"
-  lastSync?: string
-  errorMessage?: string
-  createdAt: string
-  updatedAt?: string
-}
-
-export type WebhookEvent = {
-  id: string
-  integrationId: string
-  eventType: string
-  payload: Record<string, any>
-  status: "PENDING" | "SENT" | "FAILED"
-  attempts: number
-  responseCode?: number
-  responseBody?: string
-  nextRetry?: string
-  createdAt: string
-  completedAt?: string
-}
-
-/* =========================================================
-SUPPORT & TICKETING
-========================================================= */
-
-export type TicketPriority = 
-  | "LOW"
-  | "MEDIUM"
-  | "HIGH"
-  | "CRITICAL"
-
-export type TicketStatus = 
-  | "OPEN"
-  | "IN_PROGRESS"
-  | "WAITING"
-  | "RESOLVED"
-  | "CLOSED"
-
-export type SupportTicket = {
-  id: string
-  ticketNumber: string
-  userId: string
-  subject: string
-  description: string
-  priority: TicketPriority
-  status: TicketStatus
-  category: string
-  attachments?: string[]
-  assignedTo?: string
-  resolvedAt?: string
-  closedAt?: string
-  createdAt: string
-  updatedAt?: string
-}
-
-export type TicketMessage = {
-  id: string
-  ticketId: string
-  userId: string
-  message: string
-  attachments?: string[]
-  internal: boolean
-  createdAt: string
-}
-
-/* =========================================================
-EXPORT ALL TYPES
-========================================================= */
-
-export * from './types'
