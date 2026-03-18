@@ -70,18 +70,12 @@ const emptyLegs = [
   },
 ]
 
-type LegStatus = 'draft' | 'published' | 'expired' | 'cancelled'
-
 const statusColors: Record<string, string> = {
   draft: 'bg-gray-100 text-gray-800',
   published: 'bg-green-100 text-green-800',
   expired: 'bg-yellow-100 text-yellow-800',
   cancelled: 'bg-red-100 text-red-800',
 }
-
-<Badge className={statusColors[leg.status]}>
-  {leg.status}
-</Badge>
 
 export function RecentEmptyLegs() {
   return (
